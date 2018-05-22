@@ -10,6 +10,14 @@ class BrowserHost {
     }
 
     initialize(view) {
+
+        window.addEventListener('error', (e) => {
+            var location = e.filename + ':' + e.lineno.toString() + (e.colno ? ':' + e.colno.toString() : '');
+            alert(e.message + '\n' + location); // + (e.error ? '\n' + e.error.stack.toString() : ''));
+            // alert(e.toString());
+			event.preventDefault();
+		});
+
         this._view = view;
 
         var fileElement = Array.from(document.getElementsByTagName('meta')).filter(e => e.name == 'file').shift();
