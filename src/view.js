@@ -161,7 +161,7 @@ class View {
             }
         }
     }
-    
+
     updateGraph(model, graph) {
 
         if (!graph) {
@@ -174,6 +174,24 @@ class View {
             svgElement.removeChild(svgElement.lastChild);
         }
     
+        svgElement.addEventListener('mousewheel', (e) => {
+            if (e.shiftKey || e.ctrlKey) {
+
+                this._zoom = this._zoom + (e.wheelDelta * 1.0 / 3000.0);
+                if (this._zoom < 0.1) { this._zoom = 0.1; }
+                if (this._zoom > 2) { this._zoom = 2; }
+                svgElement.setAttribute('width', this._width * this._zoom);
+                svgElement.setAttribute('height', this._height * this._zoom);
+    
+                e.preventDefault();
+            }
+        });
+        svgElement.addEventListener('mousemove', (e) => {
+            if (e.shiftKey || e.ctrlKey) {
+                e.preventDefault();
+            }
+        });
+
         var groups = graph.groups;
 
         var g = new dagre.graphlib.Graph({ compound: groups });
@@ -450,6 +468,7 @@ class View {
         svgElement.appendChild(outputGroup);
     
         // Set up zoom support
+        /*
         var zoom = d3.zoom();
         zoom.scaleExtent([0.1, 2]);
         zoom.on('zoom', (e) => {
@@ -458,14 +477,25 @@ class View {
         var svg = d3.select(svgElement);
         svg.call(zoom);
         svg.call(zoom.transform, d3.zoomIdentity);
-    
+        */
+
         setTimeout(() => {
-    
+
             var graphRenderer = new GraphRenderer(outputGroup);
             graphRenderer.render(g);
     
             var svgSize = svgElement.getBoundingClientRect();
     
+            var size = svgElement.getBBox();
+
+            this._width = size.width;
+            this._height = size.height;
+            this._zoom = 1;
+
+            svgElement.setAttribute('viewBox', '0 0 ' + size.width + ' ' + size.height);
+            svgElement.setAttribute('width', size.width / this._zoom);
+            svgElement.setAttribute('height', size.height / this._zoom);
+
             var inputElements = svgElement.getElementsByClassName('graph-input');
             if (inputElements && inputElements.length > 0) {
                 // Center view based on input elements
@@ -479,10 +509,10 @@ class View {
                 x = x / inputElements.length;
                 y = y / inputElements.length;
     
-                svg.call(zoom.transform, d3.zoomIdentity.translate((svgSize.width / 2) - x, (svgSize.height / 4) - y));
+                // svg.call(zoom.transform, d3.zoomIdentity.translate((svgSize.width / 2) - x, (svgSize.height / 4) - y));
             }
             else {
-                svg.call(zoom.transform, d3.zoomIdentity.translate((svgSize.width - g.graph().width) / 2, (svgSize.height - g.graph().height) / 2));
+                // svg.call(zoom.transform, d3.zoomIdentity.translate((svgSize.width - g.graph().width) / 2, (svgSize.height - g.graph().height) / 2));
             }    
         
             this.show('graph');
