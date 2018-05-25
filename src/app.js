@@ -178,6 +178,27 @@ class Application {
         }
     }
 
+    resetZoom() {
+        var view = this._views.activeView;
+        if (view) {
+            view.send('reset-zoom', {});
+        }
+    }
+
+    zoomIn() {
+        var view = this._views.activeView;
+        if (view) {
+            view.send('zoom-in', {});
+        }
+    }
+
+    zoomOut() {
+        var view = this._views.activeView;
+        if (view) {
+            view.send('zoom-out', {});
+        }
+    }
+
     toggleDevTools() {
         if (this.isDev()) {
             var window = electron.BrowserWindow.getFocusedWindow();
@@ -333,14 +354,31 @@ class Application {
     
         var viewTemplate = {
             label: '&View',
-            submenu: [
-                {
-                    label: '&Reload',
-                    accelerator: (process.platform === 'darwin') ? 'Cmd+R' : 'F5',
-                    click: () => this.reload()
-                }
-            ]
+            submenu: []
         };
+
+        viewTemplate.submenu.push({
+            label: '&Reload',
+            accelerator: (process.platform === 'darwin') ? 'Cmd+R' : 'F5',
+            click: () => this.reload()
+        });
+
+        viewTemplate.submenu.push({ type: 'separator' });
+        viewTemplate.submenu.push({
+            label: 'Actual &Size',
+            accelerator: (process.platform === 'darwin') ? 'Cmd+0' : 'Ctrl+0',
+            click: () => this.resetZoom()
+        });
+        viewTemplate.submenu.push({
+            label: 'Zoom &In',
+            accelerator: (process.platform === 'darwin') ? 'Cmd+Plus' : 'Ctrl+=',
+            click: () => this.zoomIn()
+        });
+        viewTemplate.submenu.push({
+            label: 'Zoom &Out',
+            accelerator: (process.platform === 'darwin') ? 'Cmd+-' : 'Ctrl+-',
+            click: () => this.zoomOut()
+        });
 
         if (this.isDev()) {
             viewTemplate.submenu.push({ type: 'separator' });
@@ -513,6 +551,10 @@ class View {
 
     get window() {
         return this._window;
+    }
+
+    send(channel, data) {
+        this._window.webContents.send(channel, data);
     }
 }
 
